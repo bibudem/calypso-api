@@ -23,7 +23,7 @@ est supportée.
 2. Accédez au répertoire du projet :
 
     ```bash
-    cd api-calypso
+    cd calypso-api
     ```
 
 3. Installez les dépendances :
