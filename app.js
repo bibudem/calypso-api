@@ -5,17 +5,14 @@ const config = require('./config');
 
 const app = express();
 const port = config.port;
-const apiCalypsoUrl = config.apiCalypsoUrl;
 
-const vedetteGlobale = '/api/discover/search/objects?query=calypso%2Evedette%3Atrue';
-const vedetteScope = '/api/discover/search/objects?query=calypso%2Escopevedette%3Atrue';
 
 // Configuration des logs avec winston
 const logger = winston.createLogger({
     transports: [
         new winston.transports.File({
             level: 'error',
-            filename: 'logs/error.log',
+            filename: config.logsRep,
             format: winston.format.combine(winston.format.timestamp(), winston.format.json())
         })
     ]
@@ -35,25 +32,29 @@ app.listen(port, () => {
 
 // Endpoint pour récupérer les items vedettes
 app.get('/api/vedette', async (req, res) => {
-    await handleFeaturedItemsRequest(apiCalypsoUrl + vedetteGlobale, res, 'avec scope');
+    await handleFeaturedItemsRequest(config.apiCalypsoUrl + config.vedetteGlobale, res, 'avec scope');
 });
 
-// Endpoint pour récupérer les items vedettes avec scope
-app.get('/api/vedette/scope', async (req, res) => {
-    const collectionId = req.query.collection_id;
+// Endpoint pour récupérer les items vedettes pour une collection ou communité donnée
+app.get('/api/vedette/:scope', async (req, res) => {
+    const scope = req.params.scope;
 
-    if (!collectionId) {
-        return res.status(400).json({ error: 'Paramètre collection_id manquant' });
+    const apiUrl = `${config.apiCalypsoUrl}${config.vedetteScope}&scope=${scope}`;
+
+    try {
+        const featuredItems = await getFeaturedItems(apiUrl, scope);
+        res.json({ items: featuredItems });
+    } catch (error) {
+        logger.error(`Erreur lors de la récupération des données avec le scope ${scope}: ${error.message}`);
+        handleRequestError(res, '', error);
     }
-
-    const apiUrl = `${apiCalypsoUrl}${vedetteScope}&collection_id=${collectionId}`;
-    await handleFeaturedItemsRequest(apiUrl, res, '');
 });
+
 
 // Fonction pour gérer la demande d'items vedettes
 async function handleFeaturedItemsRequest(apiUrl, res, errorMessage) {
     try {
-        const featuredItems = await getFeaturedItems(apiUrl);
+        const featuredItems = await getFeaturedItems(apiUrl, null);
         res.json({ items: featuredItems });
     } catch (error) {
         logger.error(`Erreur lors de la récupération des données ${errorMessage}: ${error.message}`);
@@ -80,6 +81,11 @@ async function getBundleInfo(obj) {
         const bitstreamsResponse = await axios.get(bitstreamsUrl);
         const bitstreams = bitstreamsResponse.data._embedded.bitstreams;
 
+        if (bitstreams.length === 0) {
+            console.warn(`Aucun bitstream trouvé pour le bundle VEDETTE de l'objet ${idItem}`);
+            return { idItem, group: null };
+        }
+
         const group = {
             name: featuredBundle.name,
             image: bitstreams.map(bitstream => ({
@@ -97,33 +103,53 @@ async function getBundleInfo(obj) {
     }
 }
 
+
 // Fonction pour récupérer les items vedettes
-async function getFeaturedItems(apiUrl) {
-    const response = await axios.get(apiUrl);
+async function getFeaturedItems(apiUrl, scope) {
+    try {
+        const response = await axios.get(apiUrl);
 
-    if (!response.data._embedded) {
-        console.error('Aucune donnée trouvée dans la réponse de DSpace');
-        return [];
+        const discoverObjects = await Promise.all(
+            response.data._embedded.searchResult._embedded.objects.map(async obj => {
+                try {
+                    const { idItem, group } = await getBundleInfo(obj);
+
+                    // Ajoutez cette vérification pour exclure les items qui n'ont pas un bundle VEDETTE
+                    if (group !== null) {
+                        if(scope!== null){
+                            return {
+                                id: idItem,
+                                title: obj._embedded.indexableObject.metadata['dc.title']?.[0]?.value || null,
+                                description: obj._embedded.indexableObject.metadata['dc.description']?.[0]?.value || null,
+                                group,
+                                scope
+                            };
+                        }else {
+                            return {
+                                id: idItem,
+                                title: obj._embedded.indexableObject.metadata['dc.title']?.[0]?.value || null,
+                                description: obj._embedded.indexableObject.metadata['dc.description']?.[0]?.value || null,
+                                group
+                            };
+                        }
+
+                    } else {
+                        console.warn(`Aucune information d'item vedette pour l'objet ${idItem}`);
+                        return null;
+                    }
+                } catch (error) {
+                    logger.error(`Erreur lors de la récupération des informations pour l'objet ${obj._embedded.indexableObject.id}:`, error);
+                    return null;
+                }
+            })
+        );
+
+        // Filtrer les éléments nuls ici également
+        return discoverObjects.filter(item => item !== null);
+    } catch (error) {
+        logger.error(`Erreur lors de la récupération des données: ${error.message}`);
+        throw error;
     }
-
-    const discoverObjects = await Promise.all(
-        response.data._embedded.searchResult._embedded.objects.map(async obj => {
-            try {
-                const { idItem, group } = await getBundleInfo(obj);
-                return {
-                    id: idItem,
-                    title: obj._embedded.indexableObject.metadata['dc.title']?.[0]?.value || null,
-                    description: obj._embedded.indexableObject.metadata['dc.description']?.[0]?.value || null,
-                    group,
-                };
-            } catch (error) {
-                logger.error(`Erreur lors de la récupération des informations pour l'objet ${obj._embedded.indexableObject.id}:`, error);
-                return null;
-            }
-        })
-    );
-
-    return discoverObjects.filter(item => item !== null);
 }
 
 // Fonction pour gérer les erreurs de requête
