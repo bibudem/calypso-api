@@ -2,10 +2,28 @@ const express = require('express');
 const axios = require('axios');
 const winston = require('winston');
 const config = require('./config');
+const cors = require('cors');
 
 const app = express();
 const port = config.port;
 
+// Utilisez CORS middleware
+const corsOptions = {
+    origin: config.uiCalypsoUrl,
+    methods: 'GET,PUT,POST,DELETE',
+    credentials: true,
+    optionsSuccessStatus: 204,
+    allowedHeaders: 'Content-Type, x-correlation-id, x-referrer, Authorization'
+};
+
+app.use(cors(corsOptions));
+
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', config.uiCalypsoUrl);
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-correlation-id, Authorization');
+    next();
+});
 
 // Configuration des logs avec winston
 const logger = winston.createLogger({
@@ -24,6 +42,7 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Erreur serveur' });
     next();
 });
+
 
 // Démarrer le serveur
 app.listen(port, () => {
