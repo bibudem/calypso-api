@@ -51,18 +51,53 @@ app.listen(port, () => {
 
 // Endpoint pour récupérer les items vedettes
 app.get('/api/vedette', async (req, res) => {
-    await handleFeaturedItemsRequest(config.apiCalypsoUrl + config.vedetteGlobale, res, 'avec scope');
+    const apiUrl = `${config.apiCalypsoUrl}${config.vedetteGlobale}`;
+
+    try {
+        const featuredItems = await getFeaturedItems(apiUrl, null);
+        // Mélanger le tableau d'items vedettes
+        const shuffledFeaturedItems = shuffleArray(featuredItems);
+        res.json({ items: shuffledFeaturedItems });
+    } catch (error) {
+        logger.error(`Erreur lors de la récupération des données : ${error.message}`);
+        handleRequestError(res, '', error);
+    }
 });
+
 
 // Endpoint pour récupérer les items vedettes pour une collection ou communité donnée
 app.get('/api/vedette/:scope', async (req, res) => {
+    const scope = req.params.scope;
+    const apiUrl = `${config.apiCalypsoUrl}${config.vedetteScope}&scope=${scope}`;
+
+    try {
+        const featuredItems = await getFeaturedItems(apiUrl, scope);
+        // Mélanger le tableau d'items vedettes
+        const shuffledFeaturedItems = shuffleArray(featuredItems);
+        res.json({ items: shuffledFeaturedItems });
+    } catch (error) {
+        logger.error(`Erreur lors de la récupération des données avec le scope ${scope}: ${error.message}`);
+        handleRequestError(res, '', error);
+    }
+});
+
+// Endpoint pour récupérer un nombre spécifié d'items vedettes au hasard pour une collection donnée
+app.get('/api/vedette/:limit/:scope', async (req, res) => {
+    const limit = parseInt(req.params.limit);
     const scope = req.params.scope;
 
     const apiUrl = `${config.apiCalypsoUrl}${config.vedetteScope}&scope=${scope}`;
 
     try {
         const featuredItems = await getFeaturedItems(apiUrl, scope);
-        res.json({ items: featuredItems });
+
+        // Mélanger le tableau d'items vedettes
+        const shuffledFeaturedItems = shuffleArray(featuredItems);
+
+        // Limiter le nombre d'items vedettes mélangés en fonction du paramètre "limit"
+        const limitedShuffledFeaturedItems = shuffledFeaturedItems.slice(0, limit);
+
+        res.json({ items: limitedShuffledFeaturedItems, totalCount: featuredItems.length });
     } catch (error) {
         logger.error(`Erreur lors de la récupération des données avec le scope ${scope}: ${error.message}`);
         handleRequestError(res, '', error);
@@ -169,6 +204,15 @@ async function getFeaturedItems(apiUrl, scope) {
         logger.error(`Erreur lors de la récupération des données: ${error.message}`);
         throw error;
     }
+}
+
+// Fonction pour mélanger les éléments d'un tableau de manière aléatoire
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
 }
 
 // Fonction pour gérer les erreurs de requête
