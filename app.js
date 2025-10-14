@@ -9,7 +9,7 @@ const port = config.port;
 
 // Utilisez CORS middleware
 const corsOptions = {
-    origin: config.uiCalypsoUrl,
+    origin: config.uiCollspecUrl,
     methods: 'GET,PUT,POST,DELETE',
     credentials: true,
     optionsSuccessStatus: 204,
@@ -19,7 +19,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', config.uiCalypsoUrl);
+    res.header('Access-Control-Allow-Origin', config.uiCollspecUrl);
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-correlation-id, Authorization');
     next();
@@ -51,7 +51,7 @@ app.listen(port, () => {
 
 // Endpoint pour récupérer les items vedettes
 app.get('/api/vedette', async (req, res) => {
-    const apiUrl = `${config.apiCalypsoUrl}${config.vedetteGlobale}`;
+    const apiUrl = `${config.apiCollspecUrl}${config.vedetteGlobale}`;
 
     try {
         const featuredItems = await getFeaturedItems(apiUrl, null);
@@ -68,7 +68,7 @@ app.get('/api/vedette', async (req, res) => {
 // Endpoint pour récupérer les items vedettes pour une collection ou communité donnée
 app.get('/api/vedette/:scope', async (req, res) => {
     const scope = req.params.scope;
-    const apiUrl = `${config.apiCalypsoUrl}${config.vedetteScope}&scope=${scope}`;
+    const apiUrl = `${config.apiCollspecUrl}${config.vedetteScope}&scope=${scope}`;
 
     try {
         const featuredItems = await getFeaturedItems(apiUrl, scope);
@@ -86,7 +86,7 @@ app.get('/api/vedette/:limit/:scope', async (req, res) => {
     const limit = parseInt(req.params.limit);
     const scope = req.params.scope;
 
-    const apiUrl = `${config.apiCalypsoUrl}${config.vedetteScope}&scope=${scope}`;
+    const apiUrl = `${config.apiCollspecUrl}${config.vedetteScope}&scope=${scope}`;
 
     try {
         const featuredItems = await getFeaturedItems(apiUrl, scope);
