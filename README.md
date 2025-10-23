@@ -46,9 +46,10 @@ npm start
 
 Le serveur démarrera sur le port 3000. Vous pouvez accéder aux endpoints comme suit :
 
-- [http://localhost:3000/api/items/vedette](http://localhost:3000/api/items/vedette) pour récupérer les items vedettes.
-- [http://localhost:3000/api/items/vedette/scope?collection_id=VOTRE_COLLECTION_ID](http://localhost:3000/api/items/vedette/scope?collection_id=VOTRE_COLLECTION_ID) pour récupérer les items vedettes avec le paramètre de collection_id.
+- [http://localhost:3000/api/vedette](http://localhost:3000/api/items/vedette) pour récupérer les items vedettes.
+- [http://localhost:3000/api/vedette/scope?collection_id=VOTRE_COLLECTION_ID](http://localhost:3000/api/items/vedette/scope?collection_id=VOTRE_COLLECTION_ID) pour récupérer les items vedettes avec le paramètre de collection_id.
 
 ## Usage
 
 - Accédez aux endpoints avec votre navigateur ou utilisez un outil comme [Postman](https://www.postman.com/) pour tester les requêtes.
+
