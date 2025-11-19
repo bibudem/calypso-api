@@ -3,6 +3,9 @@ const axios = require('axios');
 const winston = require('winston');
 const config = require('./config');
 const cors = require('cors');
+// AJOUTER pour Lambda
+const serverless = require('serverless-http'); 
+
 
 const app = express();
 const port = config.port;
@@ -17,6 +20,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+app.use(express.json());
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', config.uiCollspecUrl);
@@ -44,10 +49,7 @@ app.use((err, req, res, next) => {
 });
 
 
-// Démarrer le serveur
-app.listen(port, () => {
-    console.log(`Serveur écoutant sur le port ${port}`);
-});
+
 
 // Endpoint pour récupérer les items vedettes
 app.get('/api/vedette', async (req, res) => {
@@ -219,4 +221,21 @@ function shuffleArray(array) {
 function handleRequestError(res, errorMessage, error) {
     logger.error(`${errorMessage}:`, error);
     res.status(500).json({ error: 'Erreur serveur' });
+}
+
+
+// AJOUTER pour Lambda
+app.use('*', (req, res) => {
+    res.status(404).json({ error: 'Route non trouvée' });
+});
+
+module.exports.handler = serverless(app);
+
+// Démarrer le serveur en local
+if (require.main === module) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`🚀 Serveur démarré sur le port ${PORT}`);
+        console.log(`📡 URL: http://localhost:${PORT}`);
+    });
 }
