@@ -224,6 +224,15 @@ function handleRequestError(res, errorMessage, error) {
 }
 
 
+// Route de test
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'Hello', 
+        timestamp: new Date().toISOString(),
+        service: 'API Vedette'
+    });
+});
+
 // AJOUTER pour Lambda
 app.use('*', (req, res) => {
     res.status(404).json({ error: 'Route non trouvée' });
