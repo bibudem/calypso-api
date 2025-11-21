@@ -1,6 +1,6 @@
 module.exports = {
     port: 3000,
-    apiCollspecUrl: 'https://demo.dspace.org/server',
+    apiCollspecUrl: 'http://localhost:8080/server',
     uiCollspecUrl: 'http://localhost:4000',
     logsRep: 'logs/error.log',
     vedetteGlobale: '/api/discover/search/objects?query=collspec%2Evedette%3Atrue',

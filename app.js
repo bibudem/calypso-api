@@ -43,6 +43,7 @@ const logger = winston.createLogger({
 
 // Middleware d'erreur
 app.use((err, req, res, next) => {
+    console.error('Erreur globale :', err); 
     logger.error(`Erreur globale : ${err.message}`);
     res.status(500).json({ error: 'Erreur serveur' });
     next();
@@ -219,6 +220,7 @@ function shuffleArray(array) {
 
 // Fonction pour gérer les erreurs de requête
 function handleRequestError(res, errorMessage, error) {
+    console.error('Erreur handle :', error); 
     logger.error(`${errorMessage}:`, error);
     res.status(500).json({ error: 'Erreur serveur' });
 }
