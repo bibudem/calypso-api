@@ -1,16 +1,16 @@
 
-# API Calypso
+# API Collspec
 
-API Calypso est une application Express.js qui expose des endpoints pour récupérer du contenu depuis Calypso ou pour
+API Collspec est une application Express.js qui expose des endpoints pour récupérer du contenu depuis Collspec ou pour
 utiliser certaines de ses fonctionnalités.
 
-Pour l'instant, la récupération des images vedettes de Calypso
+Pour l'instant, la récupération des images vedettes de Collspec
 est supportée.
 
 ## Prérequis
 
 - [Node.js](https://nodejs.org/) installé sur votre machine
-- Accès à un serveur DSpace Calypso
+- Accès à un serveur DSpace Collspec
 
 ## Installation
 
@@ -23,7 +23,7 @@ est supportée.
 2. Accédez au répertoire du projet :
 
     ```bash
-    cd calypso-api
+    cd collspec-api
     ```
 
 3. Installez les dépendances :
@@ -36,7 +36,7 @@ est supportée.
 
 1. Ouvrez le fichier `config.js`.
 
-2. Modifiez les variables `apiCalypsoUrl` et `port` avec vos vrais données.
+2. Modifiez les variables `apiCollspecUrl` et `port` avec vos vrais données.
 
 ## Démarrage
 
